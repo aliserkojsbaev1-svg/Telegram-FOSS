@@ -12,16 +12,17 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-    - run: |
+    - name: Setup SDK
+      run: |
         mkdir -p ~/sdk/cmdline-tools
         cd ~/sdk/cmdline-tools
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
         unzip -q commandlinetools-linux-11076708_latest.zip
         mv cmdline-tools latest
-        export ANDROID_HOME=~/sdk
         yes | ~/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=~/sdk --licenses
         ~/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=~/sdk "platform-tools" "platforms;android-33" "build-tools;33.0.0" "ndk;21.4.7075529" "cmake;3.22.1"
-        cd $GITHUB_WORKSPACE
+    - name: Build
+      run: |
         echo "APP_ID=1" > API_KEYS
         echo "APP_HASH=nacgram" >> API_KEYS
         echo "sdk.dir=$HOME/sdk" > local.properties
