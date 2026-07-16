@@ -15,10 +15,23 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      with:
-        packages: 'platforms;android-33 build-tools;33.0.0 ndk;21.4.7075529 cmake;3.22.1'
+    - name: Install SDK
+      run: |
+        mkdir -p $HOME/android-sdk/cmdline-tools
+        cd $HOME/android-sdk/cmdline-tools
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+        unzip -q commandlinetools-linux-11076708_latest.zip
+        mv cmdline-tools latest
+        echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "PATH=$PATH:$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools" >> $GITHUB_ENV
+        
+    - name: Accept licenses
+      run: |
+        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk --licenses
+        
+    - name: Install SDK packages
+      run: |
+        $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk "platform-tools" "platforms;android-33" "build-tools;33.0.0" "ndk;21.4.7075529" "cmake;3.22.1"
         
     - name: Create API_KEYS
       run: |
@@ -27,12 +40,12 @@ jobs:
         
     - name: Create local.properties
       run: |
-        echo "sdk.dir=$ANDROID_HOME" > local.properties
-        echo "ndk.dir=$ANDROID_HOME/ndk/21.4.7075529" >> local.properties
+        echo "sdk.dir=$HOME/android-sdk" > local.properties
+        echo "ndk.dir=$HOME/android-sdk/ndk/21.4.7075529" >> local.properties
         
     - name: Fix versionCode
       run: |
-        sed -i 's/defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)/defaultConfig.versionCode = 1/' TMessagesProj/build.gradle
+        sed -i 's/defaultConfig.versionCode = Integer.parseInt(APP_VERSION_CODE)/\/\/ removed/g' TMessagesProj/build.gradle
         
     - name: Build APK
       run: |
